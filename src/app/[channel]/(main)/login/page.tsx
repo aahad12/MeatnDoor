@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 import { Loader } from "@/ui/atoms/Loader";
 import { LoginForm } from "@/ui/components/LoginForm";
+// import { MobileLoginForm } from "@/ui/customcomponents/auth/MobileLoginForm";
 
 export default function LoginPage() {
 	return (
 		<Suspense fallback={<Loader />}>
 			<section className="mx-auto max-w-7xl p-8">
 				<LoginForm />
+				{/* <MobileLoginForm /> */}
 			</section>
 		</Suspense>
 	);

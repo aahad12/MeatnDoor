@@ -17,7 +17,7 @@ export const GRAPHQL_ENDPOINT = `${SALEOR_BACKEND_URI}/graphql/`;
 export const SEND_OTP_ENDPOINT = `${SALEOR_BACKEND_URI}/auth/send-otp/`;
 export const VERIFY_OTP_ENDPOINT = `${SALEOR_BACKEND_URI}/auth/verify-otp/`;
 
-const apiConfig = {
+export const apiConfig = {
 	SALEOR_BACKEND_URI,
 	GRAPHQL_ENDPOINT,
 	SEND_OTP_ENDPOINT,
@@ -25,8 +25,7 @@ const apiConfig = {
 };
 
 // if we use export defaulut for api config
-// eslint-disable-next-line import/no-default-export
-export default apiConfig;
+// export default apiConfig;
 // | Export Type                      | ESLint Reaction                          | Import Syntax                                    | Notes                                  |
 // | -------------------------------- | ---------------------------------------- | ------------------------------------------------ | -------------------------------------- |
 // | `export default apiConfig`       | ❌ If rule “no-default-export” is enabled | `import config from "@/config/apiConfig"`        | Easy to use, but some teams avoid it   |

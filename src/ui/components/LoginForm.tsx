@@ -22,7 +22,12 @@ export async function LoginForm() {
 					if (data.tokenCreate.errors.length > 0) {
 						// setErrors(data.tokenCreate.errors.map((error) => error.message));
 						// setFormValues(DefaultValues);
+						console.error(data.tokenCreate.errors);
+						return;
 					}
+
+					console.log("Access token:", data.tokenCreate.token);
+					console.log("Refresh token:", data.tokenCreate.refreshToken);
 				}}
 			>
 				<div className="mb-2">

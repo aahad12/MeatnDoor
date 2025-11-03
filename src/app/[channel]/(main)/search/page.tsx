@@ -55,7 +55,9 @@ export default async function Page(props: {
 		<section className="mx-auto max-w-7xl p-8 pb-16">
 			{products.totalCount && products.totalCount > 0 ? (
 				<div>
-					<h1 className="pb-8 text-xl font-semibold">Search results for &quot;{searchValue}&quot;:</h1>
+					<h1 className="pb-8 text-xl font-semibold text-[#47141e]">
+						Search results for &quot;<span className="text-[#ed4264]">{searchValue}</span>&quot;:
+					</h1>
 					<ProductList products={products.edges.map((e) => e.node)} />
 					<Pagination
 						pageInfo={{

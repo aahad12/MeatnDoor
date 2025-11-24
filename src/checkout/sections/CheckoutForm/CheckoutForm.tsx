@@ -135,11 +135,13 @@ import { UserBillingAddressSection } from "@/checkout/sections/UserBillingAddres
 // import { PaymentSection, PaymentSectionSkeleton } from "@/checkout/sections/PaymentSection";
 import { GuestBillingAddressSection } from "@/checkout/sections/GuestBillingAddressSection";
 import { useUser } from "@/checkout/hooks/useUser";
-import { GRAPHQL_ENDPOINT } from "@/config/SaleorApi"; // 👈 tumhare config se endpoint le rahe hain
-
+import { GRAPHQL_ENDPOINT, apiConfig } from "@/config/SaleorApi"; // 👈 tumhare config se endpoint le rahe hain
+import { loadRazorpay } from "@/lib/loadRazorpay";
 export const CheckoutForm = () => {
 	const { user } = useUser();
 	const { checkout } = useCheckout();
+	const [loadingOnline, setLoadingOnline] = useState(false);
+
 	const { passwordResetToken } = getQueryParams();
 
 	const [showOnlyContact, setShowOnlyContact] = useState(!!passwordResetToken);
@@ -242,6 +244,40 @@ export const CheckoutForm = () => {
 		};
 	}
 
+	const completeCheckoutSaleor = async (user: User | null | undefined) => {
+		const query = `
+		  mutation {
+			checkoutComplete(id: "${checkout?.id}") {
+			  order {
+				id
+				number
+				status
+			  }
+			  errors { message }
+			}
+		  }
+		`;
+
+		const res = await fetch(GRAPHQL_ENDPOINT, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: user?.token ? `JWT ${user.token}` : "",
+			},
+			body: JSON.stringify({ query }),
+		});
+
+		const data = (await res.json()) as CheckoutCompleteResponse;
+		const result = data?.data?.checkoutComplete;
+
+		if (result?.errors?.length) {
+			alert("❌ " + result.errors[0].message);
+			return null;
+		}
+
+		return result?.order;
+	};
+
 	const handlePlaceOrder = async (
 		checkout: Checkout | null,
 		user: User | null | undefined,
@@ -311,6 +347,82 @@ export const CheckoutForm = () => {
 		} finally {
 			setLoading(false);
 		}
+	};
+	interface RazorpayGatewayResponse {
+		id: string;
+	}
+	interface RazorpayOptions {
+		key: string;
+		order_id: string;
+		currency: string;
+		name: string;
+		image?: string;
+		handler: () => void | Promise<void>;
+		theme?: {
+			color: string;
+		};
+	}
+
+	interface RazorpayInstance {
+		open: () => void;
+	}
+
+	const handlePayOnline = async () => {
+		if (!checkout?.id) return alert("Checkout missing");
+
+		setLoadingOnline(true);
+
+		try {
+			// 1️⃣ Get Razorpay Order ID from Saleor Payment Gateway
+			const response = await fetch(`${apiConfig.RAZORPAY_GATEWAY_ENDPOINT}?checkout_id=${checkout.id}`, {
+				method: "POST",
+			});
+
+			const data = (await response.json()) as RazorpayGatewayResponse;
+			const razorpayOrderId = data.id;
+
+			if (!razorpayOrderId) {
+				alert("Failed to create Razorpay order");
+				return;
+			}
+
+			// 2️⃣ Load Razorpay script
+			await loadRazorpay();
+
+			// 3️⃣ Razorpay Checkout options
+			const options = {
+				key: process.env.NEXT_PUBLIC_RAZORPAY_PUBLIC_KEY!,
+				order_id: razorpayOrderId,
+				currency: "INR",
+				name: "MEATnDOOR",
+				image: "/logo.png",
+				handler: async () => {
+					// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+					const order = await completeCheckoutSaleor(user);
+					if (order) {
+						alert(`🟢 Payment Success! Order #${order.number}`);
+					}
+				},
+				theme: { color: "#F37254" },
+			};
+
+			if (typeof window !== "undefined" && "Razorpay" in window) {
+				const rzp = new (
+					window as unknown as {
+						Razorpay: { new (options: RazorpayOptions): RazorpayInstance };
+					}
+				).Razorpay(options);
+
+				rzp.open();
+			} else {
+				alert("Razorpay SDK not loaded yet.");
+			}
+		} catch (err) {
+			console.error("Razorpay error:", err);
+			alert("Payment failed");
+		}
+
+		setLoadingOnline(false);
 	};
 
 	const onPlaceOrder = async () => {
@@ -428,7 +540,6 @@ export const CheckoutForm = () => {
 					<div className="w-full">
 						<Divider />
 						<h1 className="mb-4 text-lg font-semibold">Payment Method</h1>
-
 						{/* ✅ Place Order Button */}
 						<Button
 							className="w-full rounded-md py-3"
@@ -439,6 +550,16 @@ export const CheckoutForm = () => {
 							{loading ? "Placing Order..." : "Place Order"}
 							Place Order
 						</Button>
+						<Button
+							label={undefined}
+							className="w-full py-3"
+							onClick={handlePayOnline}
+							disabled={loadingOnline}
+						>
+							{loading ? "Placing Order..." : "Place Order"}
+							Place Order
+						</Button>
+						<h1>cehck</h1>
 					</div>
 				</>
 			</div>

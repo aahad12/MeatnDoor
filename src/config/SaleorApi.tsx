@@ -17,11 +17,14 @@ export const GRAPHQL_ENDPOINT = `${SALEOR_BACKEND_URI}/graphql/`;
 export const SEND_OTP_ENDPOINT = `${SALEOR_BACKEND_URI}/auth/send-otp/`;
 export const VERIFY_OTP_ENDPOINT = `${SALEOR_BACKEND_URI}/auth/verify-otp/`;
 
+export const RAZORPAY_GATEWAY_ENDPOINT = `${SALEOR_BACKEND_URI}/payments/gateways/razorpay/`;
+
 export const apiConfig = {
 	SALEOR_BACKEND_URI,
 	GRAPHQL_ENDPOINT,
 	SEND_OTP_ENDPOINT,
 	VERIFY_OTP_ENDPOINT,
+	RAZORPAY_GATEWAY_ENDPOINT,
 };
 
 // if we use export defaulut for api config

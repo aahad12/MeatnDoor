@@ -113,7 +113,11 @@ import {
 	IoLogoPinterest,
 } from "react-icons/io5";
 
-export function Footer() {
+type FooterProps = {
+	channel: string;
+};
+
+export function Footer({ channel }: FooterProps) {
 	return (
 		<footer className="border-t border-gray-200 bg-[#47141e]">
 			{/* Footer Top */}
@@ -168,7 +172,7 @@ export function Footer() {
 								<p className="mt-4 text-sm text-white">© 2025 MEATnDOOR Fresh Foods. All rights reserved.</p>
 							</div>
 						</div>
-
+						<h1 className="hidden">{channel} hi</h1>
 						{/* Right Section */}
 						<div className="mt-12 w-full md:mt-24 md:w-8/12">
 							<div className="grid grid-cols-2 gap-8 md:grid-cols-4">

@@ -22,9 +22,7 @@ export const CategoryFilter = ({ categories }: { categories: CategoryNode[] }) =
 			newParams.append("categories", categoryId);
 		} else {
 			newParams.delete("categories");
-			currentSelected
-				.filter((id) => id !== categoryId)
-				.forEach((id) => newParams.append("categories", id));
+			currentSelected.filter((id) => id !== categoryId).forEach((id) => newParams.append("categories", id));
 		}
 
 		// Reset pagination when filtering
@@ -35,7 +33,7 @@ export const CategoryFilter = ({ categories }: { categories: CategoryNode[] }) =
 
 	return (
 		<div className="w-64 flex-shrink-0 pr-8">
-			<h3 className="mb-4 text-lg font-semibold text-neutral-900">Categories</h3>
+			<h3 className="mb-4 text-lg font-semibold text-[#47141e] ">Categories</h3>
 			<ul className="space-y-2">
 				{categories.map((category) => (
 					<li key={category.id}>
@@ -60,15 +58,10 @@ export const CategoryFilter = ({ categories }: { categories: CategoryNode[] }) =
 												type="checkbox"
 												id={childEdge.node.id}
 												checked={selectedCategories.includes(childEdge.node.id)}
-												onChange={(e) =>
-													handleCategoryChange(childEdge.node.id, e.target.checked)
-												}
-												className="h-4 w-4 rounded border-neutral-300 text-neutral-900 focus:ring-neutral-500"
+												onChange={(e) => handleCategoryChange(childEdge.node.id, e.target.checked)}
+												className="h-4 w-4 rounded border-neutral-300 text-[#ed4264] focus:ring-neutral-500"
 											/>
-											<label
-												htmlFor={childEdge.node.id}
-												className="ml-2 text-sm text-neutral-700"
-											>
+											<label htmlFor={childEdge.node.id} className="ml-2 text-sm text-neutral-700">
 												{childEdge.node.name}
 											</label>
 										</div>

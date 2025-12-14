@@ -193,7 +193,7 @@ export default function CustomCarousel({ products }: { products: ProductListItem
 				{/* <button onClick={prevSlide} className="absolute left-0 z-10 rounded-full bg-white p-2 shadow-md">
 					<ChevronLeft className="text-pink-400" size={24} />
 				</button> */}
-				<div ref={carouselRef} className="scrollbar-hide w-full overflow-x-auto whitespace-nowrap">
+				<div ref={carouselRef} className="scrollbar-hide w-full whitespace-nowrap">
 					<ProductList products={displayedProducts} />
 				</div>
 

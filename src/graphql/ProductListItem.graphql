@@ -2,9 +2,57 @@ fragment ProductListItem on Product {
 	id
 	name
 	slug
+	attributes {
+		attribute {
+			id
+			name
+			slug
+		}
+		values {
+			id
+			name
+			slug
+			value
+			file {
+				url
+				contentType
+			}
+			richText
+			reference
+			boolean
+			date
+			dateTime
+		}
+	}
 	variants {
 		id
 		name
+		sku
+		pricing {
+			price {
+				gross {
+					amount
+					currency
+				}
+			}
+		}
+		quantityAvailable
+		media {
+			url
+			alt
+		}
+		attributes {
+			attribute {
+				id
+				name
+				slug
+			}
+			values {
+				id
+				name
+				value
+			}
+		}
 	}
 	pricing {
 		priceRange {

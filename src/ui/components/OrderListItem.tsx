@@ -71,26 +71,74 @@ const steps = ["Ordered", "Processing", "Delivered"];
 // 	);
 // };
 
-const getCurrentIndex = (status: any) => {
-	switch (status) {
-		case "UNCONFIRMED":
-			return 0;
-		case "UNFULFILLED":
-			return 1;
-		case "FULFILLED":
-			return 2;
-		case "CANCELED":
-			return -1; // special case
-		default:
-			return 0;
+// const getCurrentIndex = (status: any) => {
+// 	switch (status) {
+// 		case "UNCONFIRMED":
+// 			return 0;
+// 		case "UNFULFILLED":
+// 			return 1;
+// 		case "FULFILLED":
+// 			return 2;
+// 		case "CANCELED":
+// 			return -1; // special case
+// 		default:
+// 			return 0;
+// 	}
+// };
+const getCurrentIndex = (status: string, deliveryDate?: string, deliveryTime?: string) => {
+	// Cancelled
+	if (status === "CANCELED") return -1;
+
+	// Delivered ONLY when BE updates
+	if (status === "FULFILLED") return 2;
+
+	// Fallback
+	if (!deliveryDate || !deliveryTime) {
+		return status === "UNFULFILLED" ? 1 : 0;
 	}
-};
-type OrderStatusTimelineProps = {
-	status: string; // or specific union below
+
+	/**
+	 * deliveryDate example: "2025-12-15"
+	 * deliveryTime example: "4:30 PM - 6:30 PM"
+	 */
+
+	const timePart = deliveryTime.split("-")[0].trim(); // "4:30 PM"
+
+	const [time, modifier] = timePart.split(" ");
+	const [hoursStr, minutesStr] = time.split(":");
+	let hours = parseInt(hoursStr, 10);
+	const minutes = parseInt(minutesStr, 10);
+
+	if (modifier === "PM" && hours < 12) hours += 12;
+	if (modifier === "AM" && hours === 12) hours = 0;
+
+	const [year, month, day] = deliveryDate.split("-").map(Number);
+
+	// Create a Date object in IST
+	// IST = UTC + 5:30
+	const deliveryDateTimeIST = new Date(Date.UTC(year, month - 1, day, hours - 5, minutes - 30));
+
+	// Current IST time
+	const nowIST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+
+	const processingTimeIST = new Date(deliveryDateTimeIST.getTime() - 2 * 60 * 60 * 1000);
+
+	if (nowIST >= processingTimeIST) {
+		return 1; // Processing
+	}
+
+	return 0; // Ordered
 };
 
-const OrderStatusTimeline = ({ status }: OrderStatusTimelineProps) => {
-	const currentIndex = getCurrentIndex(status); // 0 = Ordered, 1 = Processing, 2 = Delivered
+type OrderStatusTimelineProps = {
+	status: string;
+	deliveryDate?: string;
+	deliveryTime?: string;
+};
+
+const OrderStatusTimeline = ({ status, deliveryDate, deliveryTime }: OrderStatusTimelineProps) => {
+	// const currentIndex = getCurrentIndex(status); // 0 = Ordered, 1 = Processing, 2 = Delivered
+	const currentIndex = getCurrentIndex(status, deliveryDate, deliveryTime);
 	const stageColors = ["#8c223c", "#f3ac63", "#4CAF50"];
 
 	return (
@@ -270,7 +318,12 @@ export const OrderListItem = ({ order }: Props) => {
 				<div className="flex flex-col md:flex-[1]">
 					<dt className="text-center font-medium text-neutral-900">Status</dt>
 					<dd className="text-center">
-						<OrderStatusTimeline status={order.status} />
+						{/* <OrderStatusTimeline status={order.status} /> */}
+						<OrderStatusTimeline
+							status={order.status}
+							deliveryDate={order?.metadata?.find((a) => a.key === "Delivery_Date")?.value}
+							deliveryTime={order?.metadata?.find((a) => a.key === "Delivery_Time")?.value}
+						/>
 					</dd>
 				</div>
 

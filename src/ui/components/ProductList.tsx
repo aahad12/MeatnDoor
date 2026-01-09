@@ -14,7 +14,15 @@ export const ProductList = ({
 			data-testid="ProductList"
 			className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
 		>
-			{products.map((product, index) => (
+			{[...products]
+				.sort((a, b) => {
+					const qtyA = a.variants?.[0]?.quantityAvailable ?? 0;
+					const qtyB = b.variants?.[0]?.quantityAvailable ?? 0;
+					if (qtyA > 0 && qtyB <= 0) return -1;
+					if (qtyA <= 0 && qtyB > 0) return 1;
+					return 0;
+				})
+				.map((product, index) => (
 				<ProductElement
 					key={product.id}
 					product={product}

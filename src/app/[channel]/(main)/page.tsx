@@ -43,23 +43,12 @@ export const metadata = {
 	description: "Quality at Doorstep",
 };
 
-export default async function Page() {
-	// props: { params: Promise<{ channel: string }> }
-	// const params = await props.params;
-	// const data = await executeGraphQL(ProductListPaginatedDocument, {
-	// 	variables: {
-	// 		first: ProductsPerPage,
-	// 		after: null,
-	// 		channel: params.channel,
-	// 	},
-	// 	revalidate: 60,
-	// });
-	// const productList = data.products?.edges.map((edge) => edge.node) || [];
+export default async function Page(props: { params: Promise<{ channel: string }> }) {
+	const params = await props.params;
 
 	return (
 		<section className="pb-16">
-			{/* <CustomPage products={productList} /> */}
-			<CustomPage />
+			<CustomPage params={params} />
 		</section>
 	);
 }

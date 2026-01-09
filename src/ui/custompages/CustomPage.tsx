@@ -15,12 +15,16 @@
 import CustomCarousel from "../customcomponents/CustomCarousel";
 import { CustomSlider } from "../customcomponents/CustomSlider";
 import { type ProductListItemFragment } from "@/gql/graphql";
+import * as Checkout from "@/lib/checkout";
 
 export interface BestSellerProduct {
 	id: string;
 	name: string;
 	slug: string;
 	thumbnail: { url: string; alt: string | null } | null;
+	category: { id: string; name: string; slug: string } | null;
+	variants: { id: string; name: string; pricing: any }[] | null;
+	attributes: { attribute: { name: string }; values: { name: string }[] }[];
 	pricing: {
 		priceRange: {
 			start: { gross: { amount: number; currency: string } };
@@ -49,7 +53,24 @@ const BEST_SELLERS_QUERY = `
           name
           slug
           thumbnail { url alt }
-          category { id name slug }  # <-- ADD THIS
+          category { id name slug }
+          attributes {
+             attribute { name }
+             values { name }
+          }
+          variants {
+            id
+            name
+            pricing {
+               price {
+                 gross {
+                   amount
+                   currency
+                 }
+               }
+            }
+          }
+
           pricing {
             priceRange {
               start { gross { amount currency } }
@@ -75,18 +96,36 @@ async function getBestSellerProducts(): Promise<ProductListItemFragment[]> {
 	});
 
 	const { data } = (await response.json()) as { data: BestSellerCollectionResponse };
-	return data.collection?.products.edges.map((edge) => edge.node) ?? [];
+	return (data.collection?.products.edges.map((edge) => edge.node) as unknown as ProductListItemFragment[]) ?? [];
 }
 
 // Page component
 // eslint-disable-next-line import/no-default-export
-export default async function CustomPage() {
+// eslint-disable-next-line import/no-default-export
+export default async function CustomPage({ params }: { params: { channel: string } }) {
 	const products = await getBestSellerProducts();
+
+	const checkoutId = await Checkout.getIdFromCookies(params.channel);
+	const checkout = await Checkout.find(checkoutId);
+
+	const cartItems =
+		checkout?.lines.reduce(
+			(acc, line) => {
+				if (line.variant?.id) {
+					acc[line.variant.id] = {
+						lineId: line.id,
+						quantity: line.quantity,
+					};
+				}
+				return acc;
+			},
+			{} as Record<string, { lineId: string; quantity: number }>,
+		) || {};
 
 	return (
 		<div>
 			<CustomSlider />
-			<CustomCarousel products={products} />
+			<CustomCarousel products={products} cartItems={cartItems} />
 		</div>
 	);
 }

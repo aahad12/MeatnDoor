@@ -62,7 +62,11 @@ export function ProductElement({
 	return (
 		<li data-testid="ProductElement" className="rounded border-2 border-[#47141e]  ">
 			<LinkWithChannel href={`/products/${product.slug}`} key={product.id}>
-				<div className="h-[260px]">
+				<div
+					className={`h-[260px] ${
+						product.variants?.[0]?.quantityAvailable === 0 ? "grayscale" : ""
+					}`}
+				>
 					{product?.thumbnail?.url && (
 						<ProductImageWrapper
 							loading={loading}
@@ -97,7 +101,9 @@ export function ProductElement({
 						})}
 					</p>
 					<div className="mt-2 flex justify-end">
-						{cartItem ? (
+						{product.variants?.[0]?.quantityAvailable === 0 ? (
+							<div className="text-sm font-medium text-red-600">Out of Stock</div>
+						) : cartItem ? (
 							<div className="flex items-center gap-2 rounded-md bg-[#ed4264]">
 								<button
 									onClick={handleDecrease}

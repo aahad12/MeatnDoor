@@ -152,7 +152,7 @@ export function CustomSlider() {
 
 			{/* Floating Particles Effect - Enhanced */}
 			<div className="absolute inset-0 overflow-hidden">
-				{Array.from({ length: 12 }).map((_, i) => (
+				{Array?.from({ length: 12 }).map((_, i) => (
 					<div
 						key={i}
 						className="absolute rounded-full bg-[#ed4264] opacity-25 animate-pulse"
@@ -167,7 +167,7 @@ export function CustomSlider() {
 					></div>
 				))}
 				{/* Larger floating elements */}
-				{Array.from({ length: 4 }).map((_, i) => (
+				{Array?.from({ length: 4 }).map((_, i) => (
 					<div
 						key={`large-${i}`}
 						className="absolute rounded-full bg-gradient-to-br from-[#ed4264] to-[#ff6b9d] opacity-15 animate-pulse blur-sm"

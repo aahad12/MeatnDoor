@@ -316,7 +316,7 @@ export default async function Page(props: {
 							<h1 className="mb-3 text-4xl font-extrabold leading-tight text-[#47141e] transition-colors sm:text-5xl lg:text-6xl">
 								{product?.name}
 							</h1>
-							<div className="h-1.5 w-32 rounded-full bg-gradient-to-r from-[#ed4264] via-[#ff6b9d] to-[#ed4264] shadow-lg"></div>
+							{/* <div className="h-1.5 w-32 rounded-full bg-gradient-to-r from-[#ed4264] via-[#ff6b9d] to-[#ed4264] shadow-lg"></div> */}
 						</div>
 
 						{/* Product Details: Net, Serves, Pieces */}

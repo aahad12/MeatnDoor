@@ -403,7 +403,7 @@ export const CheckoutForm = () => {
 			input: [
 				{ key: "Delivery_Date", value: "${deliveryDate}" },
 				{ key: "Delivery_Time", value: "${selectedSlot.slot}" },
-				{ key: "delivery_method", value: "cash_on_delivery" }
+				{ key: "paymentMode", value: "cash_on_delivery" }
 				{ key: "ordered_platform", value: "Website" }
 				]
 				) {
@@ -537,7 +537,8 @@ export const CheckoutForm = () => {
 					input: [
 						{ key: "Delivery_Time", value: "${deliveryDate}" },
 						{ key: "Delivery_Time", value: "${selectedSlot.slot}" },
-						{ key: "paymentMode", value: "online_payment" }
+						{ key: "paymentMode", value: "Online_Payment" }
+						{ key: "ordered_platform", value: "Website" }
 					]
 				) {
 					errors { field message }

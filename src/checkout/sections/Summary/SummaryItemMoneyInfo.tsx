@@ -2,7 +2,7 @@ import React from "react";
 import clsx from "clsx";
 import { Money } from "@/checkout/components";
 import { type Money as MoneyType } from "@/checkout/graphql";
-import { getFormattedMoney } from "@/checkout/lib/utils/money";
+// import { getFormattedMoney } from "@/checkout/lib/utils/money";
 import { type GrossMoney } from "@/checkout/lib/globalTypes";
 
 interface SummaryItemMoneyInfoProps {
@@ -16,7 +16,7 @@ export const SummaryItemMoneyInfo: React.FC<SummaryItemMoneyInfoProps> = ({
 	quantity,
 	undiscountedUnitPrice,
 }) => {
-	const multiplePieces = quantity > 1;
+	// const multiplePieces = quantity > 1;
 	const piecePrice = unitPrice.gross;
 	const onSale = undiscountedUnitPrice.amount !== unitPrice.gross.amount;
 
@@ -47,11 +47,11 @@ export const SummaryItemMoneyInfo: React.FC<SummaryItemMoneyInfoProps> = ({
 			}
 			</div>
 
-			{multiplePieces && (
+			{/* {multiplePieces && (
 				<p aria-label="single piece price" color="secondary" className="text-end text-xs">
 					{getFormattedMoney(piecePrice)} each
 				</p>
-			)}
+			)} */}
 		</div>
 	);
 };

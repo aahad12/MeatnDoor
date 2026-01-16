@@ -160,12 +160,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSaleorAuthClient } from "@saleor/auth-sdk";
 import { apiConfig } from "@/config/SaleorApi";
+import { ClipLoader } from "react-spinners";
 
 export function MobileLoginForm() {
 	const router = useRouter();
 	const [phone, setPhone] = useState("");
 	const [otp, setOtp] = useState("");
 	const [otpSent, setOtpSent] = useState(false);
+	const [isGeneratingOtp, setIsGeneratingOtp] = useState(false);
+	const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
 	// 🔹 Saleor Auth Client setup
 	const saleorAuthClient = createSaleorAuthClient({
@@ -178,6 +181,7 @@ export function MobileLoginForm() {
 			alert("Please enter a valid 10-digit phone number");
 			return;
 		}
+		setIsGeneratingOtp(true);
 		try {
 			const response = await fetch(apiConfig.SEND_OTP_ENDPOINT, {
 				method: "POST",
@@ -203,6 +207,8 @@ export function MobileLoginForm() {
 		} catch (error) {
 			console.error("Error sending OTP:", error);
 			alert("Failed to send OTP. Please try again.");
+		} finally {
+			setIsGeneratingOtp(false);
 		}
 	};
 
@@ -246,6 +252,7 @@ export function MobileLoginForm() {
 			alert("Enter 6-digit OTP");
 			return;
 		}
+		setIsVerifyingOtp(true);
 		try {
 			const response = await fetch(apiConfig.VERIFY_OTP_ENDPOINT, {
 				method: "POST",
@@ -291,6 +298,8 @@ export function MobileLoginForm() {
 			}
 		} catch (error) {
 			console.error("Error verifying OTP:", error);
+		} finally {
+			setIsVerifyingOtp(false);
 		}
 	};
 
@@ -344,16 +353,23 @@ export function MobileLoginForm() {
 							{/* Generate OTP Button */}
 							<button
 								type="submit"
-								className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#ed4264] to-[#ff6b9d] px-6 py-3.5 text-center text-lg font-bold text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:shadow-[#ed4264]/50"
+								disabled={isGeneratingOtp}
+								className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#ed4264] to-[#ff6b9d] px-6 py-3.5 text-center text-lg font-bold text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:shadow-[#ed4264]/50 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
 							>
 								{/* Shimmer effect */}
 								<div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full"></div>
 								{/* Button content */}
 								<span className="relative z-10 flex items-center justify-center gap-2">
-									<svg className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-									</svg>
-									<span>Generate OTP</span>
+									{isGeneratingOtp ? (
+										<ClipLoader size={20} color="#ffffff" />
+									) : (
+										<>
+											<svg className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+											</svg>
+											<span>Generate OTP</span>
+										</>
+									)}
 								</span>
 							</button>
 						</div>
@@ -384,16 +400,23 @@ export function MobileLoginForm() {
 							{/* Verify OTP Button */}
 							<button
 								type="submit"
-								className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#ed4264] to-[#ff6b9d] px-6 py-3.5 text-center text-lg font-bold text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:shadow-[#ed4264]/50"
+								disabled={isVerifyingOtp}
+								className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#ed4264] to-[#ff6b9d] px-6 py-3.5 text-center text-lg font-bold text-white shadow-xl transition-all duration-300 hover:shadow-2xl hover:shadow-[#ed4264]/50 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:scale-100"
 							>
 								{/* Shimmer effect */}
 								<div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover:translate-x-full"></div>
 								{/* Button content */}
 								<span className="relative z-10 flex items-center justify-center gap-2">
-									<svg className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-									</svg>
-									<span>Verify OTP</span>
+									{isVerifyingOtp ? (
+										<ClipLoader size={20} color="#ffffff" />
+									) : (
+										<>
+											<svg className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+												<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+											</svg>
+											<span>Verify OTP</span>
+										</>
+									)}
 								</span>
 							</button>
 

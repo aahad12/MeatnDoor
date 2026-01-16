@@ -169,6 +169,7 @@ export function ProductElement({
 								</span>
 							</div>
 						)}
+						<div className="flex items-center gap-5">
 						{product?.attributes?.find((a) => a.attribute?.slug === "serves-for")?.values?.[0]
 							?.name && (
 							<div className="flex items-center gap-1">
@@ -193,6 +194,7 @@ export function ProductElement({
 								<span>pieces</span>
 							</div>
 						)}
+						</div>
 					</div>
 				</div>
 				<div className={`mt-4 flex items-end justify-between ${product?.variants?.[0]?.quantityAvailable === 0 ? 'mt-6' : ''}`}>
@@ -241,7 +243,9 @@ export function ProductElement({
 										disabled={isPending}
 										className="flex h-8 w-8 items-center justify-center rounded-md text-white transition-colors hover:bg-[#47141e]/20 disabled:cursor-not-allowed disabled:opacity-50"
 									>
-										-
+										<svg className="h-4 w-4" fill="none" stroke="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+										</svg>
 									</button>
 									<span className="min-w-[2rem] text-center text-sm font-bold text-white">
 										{isPending ? <ClipLoader size={12} color="#ffffff" /> : cartItem.quantity}
@@ -251,7 +255,9 @@ export function ProductElement({
 										disabled={isPending}
 										className="flex h-8 w-8 items-center justify-center rounded-md text-white transition-colors hover:bg-[#47141e]/20 disabled:cursor-not-allowed disabled:opacity-50"
 									>
-										+
+										<svg className="h-4 w-4" fill="none" stroke="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+										</svg>
 									</button>
 								</div>
 							) : (

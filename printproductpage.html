@@ -1,0 +1,686 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Printable Product Label</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+        }
+    
+        .category-section {
+            margin-bottom: 2rem;
+        }
+    
+        .category-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            display: inline-block;
+            padding-bottom: 2px;
+        }
+    
+        .product-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    
+        .product-card {
+            width: 50mm;
+            height: 30mm;
+            padding: 6px 8px;
+            margin: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            box-sizing: border-box;
+        }
+    
+        .product-name {
+            font-weight: 600;
+            color: #222;
+        }
+    
+        .product-qty {
+            font-size: 0.7rem;
+            /* font-weight: bold; */
+        }
+    
+        .product-price {
+            color: #000;
+        }
+    
+        .use-by {
+            font-size: 0.7rem;
+        }
+    
+        .use-by small {
+            /* color: #e63946; */
+            font-weight: 600;
+        }
+    
+        /* ✅ PRINT MODE — one product per page, centered */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background: #fff;
+            }
+    
+            .category-section,
+            .category-title {
+                display: none;
+                /* Hide headings during print */
+            }
+    
+            .product-grid {
+                display: block;
+            }
+    
+            .product-card {
+                page-break-after: always;
+                width: 55mm;
+                height: 33mm;
+                display: flex;
+                margin-left: 3mm;
+                margin-top: 0mm;
+                transform: none;
+                box-sizing: border-box;
+                position: relative;
+            }
+    
+            /* 🧭 Perfect centering on page */
+            @page {
+                size: 55mm 33mm;
+                margin: 0;
+            }
+    
+    
+        }
+    </style>
+</head>
+
+<body>
+    <div id="productContainer">Loading product...</div>
+
+    <script>
+        const graphqlEndpoint = 'https://api.meatify.in/graphql/';
+
+        const query = `
+    query GetProduct {
+      products(first: 1, channel: "in") {
+        edges {
+          node {
+            id
+            name
+            description
+            category { name }
+            attributes { attribute { name slug } values { name } }
+            variants {
+              name
+              attributes { attribute { name slug } values { name } }
+            }
+            pricing { priceRange { start { gross { amount currency } } } }
+          }
+        }
+      }
+    }`;
+
+        async function fetchProduct() {
+            const res = await fetch(graphqlEndpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query }),
+            });
+            const json = await res.json();
+            return json.data.products.edges[0].node;
+        }
+
+        function renderProduct(product) {
+            const container = document.getElementById("productContainer");
+            container.innerHTML = "";
+
+            const price = product.pricing?.priceRange?.start?.gross?.amount || 0;
+            const variant = product.variants?.[0];
+            const netWeight =
+                product.attributes?.find((a) => a.attribute.slug === "net-weight")?.values?.[0]?.name ||
+                variant?.attributes?.find((a) => a.attribute.slug === "net-weight")?.values?.[0]?.name ||
+                "";
+
+            const netWeightText = netWeight || "";
+            const numericWeight = parseFloat(netWeightText.replace(/[^\d.]/g, "")) || 0;
+
+            let pricePerGram = 0;
+            if (numericWeight > 0 && price > 0) {
+                pricePerGram = price / numericWeight;
+            }
+
+            // ✅ Future date (2 days ahead, IST)
+            const today = new Date();
+            today.setDate(today.getDate() + 2);
+            const options = { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' };
+            const futureDateText = today.toLocaleDateString('en-IN', options);
+
+            // ✅ Create product card (SINGLE)
+            const card = document.createElement("div");
+            card.className = "product-card";
+            card.innerHTML = `
+        <div class="product-name">${product.name}</div>
+        <div class="product-price">MRP ₹ <span style="font-weight:bold;">${price.toFixed(2)}</span></div>
+        <div class="use-by">Use by: <small>${futureDateText}</small></div>
+        ${netWeightText ? `<div class="product-qty"><span>Net Weight:</span> <span style="font-weight:bold; font-size:14px">${netWeightText}</span></div>` : ""}
+        <div style="font-size:0.7rem;">USP: Rs ${pricePerGram.toFixed(2)}${pricePerGram > 0 ? "/g" : ""}</div>
+      `;
+
+            container.appendChild(card);
+        }
+
+        async function init() {
+            const product = await fetchProduct();
+            renderProduct(product);
+        }
+
+        init();
+    </script>
+</body>
+
+</html> -->
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Printable Product Label</title>
+		<!-- <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .product-card {
+            width: 50mm;
+            height: 30mm;
+            padding: 6px 8px;
+            margin: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #222;
+        }
+
+        .product-qty {
+            font-size: 0.7rem;
+        }
+
+        .product-price {
+            color: #000;
+        }
+
+        .use-by {
+            font-size: 0.7rem;
+        }
+
+        .use-by small {
+            font-weight: 600;
+        }
+
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background: #fff;
+            }
+
+            .product-card {
+                page-break-after: always;
+                width: 55mm;
+                height: 33mm;
+                display: flex;
+                margin-left: 3mm;
+                margin-top: 0mm;
+                transform: none;
+                box-sizing: border-box;
+                position: relative;
+            }
+
+            @page {
+                size: 55mm 33mm;
+                margin: 0;
+            }
+        }
+    </style> -->
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background: #fff;
+				margin: 0;
+				padding: 0;
+			}
+
+			.category-section {
+				margin-bottom: 2rem;
+			}
+
+			.category-title {
+				font-weight: bold;
+				font-size: 1.2rem;
+				margin-bottom: 0.8rem;
+				color: #333;
+				border-bottom: 2px solid #ddd;
+				display: inline-block;
+				padding-bottom: 2px;
+			}
+
+			.product-grid {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+			}
+
+			.product-card {
+				width: 50mm;
+				height: 30mm;
+				padding: 6px 8px;
+				margin: 6px;
+				font-size: 0.85rem;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				background: #fff;
+				box-sizing: border-box;
+			}
+
+			.product-name {
+				font-weight: 600;
+				color: #222;
+			}
+
+			.product-qty {
+				font-size: 0.7rem;
+				/* font-weight: bold; */
+			}
+
+			.product-price {
+				color: #000;
+			}
+
+			.use-by {
+				font-size: 0.7rem;
+			}
+
+			.use-by small {
+				/* color: #e63946; */
+				font-weight: 600;
+			}
+
+			/* ✅ PRINT MODE — one product per page, centered */
+			@media print {
+				body {
+					margin: 0;
+					padding: 0;
+					background: #fff;
+				}
+
+				.category-section,
+				.category-title {
+					display: none;
+					/* Hide headings during print */
+				}
+
+				.product-grid {
+					display: block;
+				}
+
+				.product-card {
+					page-break-after: always;
+					width: 55mm;
+					height: 33mm;
+					display: flex;
+					margin-left: 3mm;
+					margin-top: -0.1mm;
+					transform: none;
+					box-sizing: border-box;
+					position: relative;
+				}
+
+				/* 🧭 Perfect centering on page */
+				@page {
+					size: 55mm 33mm;
+					margin: 0;
+				}
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="productContainer">Loading product...</div>
+
+		<script>
+			const graphqlEndpoint = "https://api.meatify.in/graphql/";
+
+			// ✅ Get product slug from URL (example: ?slug=chicken-breast)
+			const urlParams = new URLSearchParams(window.location.search);
+			const productSlug = urlParams.get("slug");
+
+			if (!productSlug) {
+				document.getElementById("productContainer").innerHTML = "<p>No product selected.</p>";
+			} else {
+				const query = `
+            query GetProductBySlug($slug: String!) {
+              product(channel: "in", slug: $slug) {
+                name
+                description
+                category { name }
+                attributes { attribute { name slug } values { name } }
+                variants {
+                  name
+                  attributes { attribute { name slug } values { name } }
+                }
+                pricing { priceRange { start { gross { amount currency } } } }
+              }
+            }`;
+
+				async function fetchProduct(slug) {
+					const res = await fetch(graphqlEndpoint, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({ query, variables: { slug } }),
+					});
+					const json = await res.json();
+					return json.data.product;
+				}
+
+				function renderProduct(product) {
+					const container = document.getElementById("productContainer");
+					if (!product) {
+						container.innerHTML = "<p>Product not found.</p>";
+						return;
+					}
+
+					const price = product.pricing?.priceRange?.start?.gross?.amount || 0;
+					const variant = product.variants?.[0];
+					const netWeight =
+						product.attributes?.find((a) => a.attribute.slug === "net-weight")?.values?.[0]?.name ||
+						variant?.attributes?.find((a) => a.attribute.slug === "net-weight")?.values?.[0]?.name ||
+						"";
+					const savingAmount =
+						variant?.attributes?.find((a) => a.attribute.slug === "saving-amount")?.values[0]?.name || "";
+
+					const netWeightText = netWeight || "";
+					const numericWeight = parseFloat(netWeightText.replace(/[^\d.]/g, "")) || 0;
+					const pricePerGram = numericWeight > 0 && price > 0 ? price / numericWeight : 0;
+
+					const today = new Date();
+					today.setDate(today.getDate() + 2);
+					const futureDateText = today.toLocaleDateString("en-IN", {
+						day: "numeric",
+						month: "long",
+						year: "numeric",
+						timeZone: "Asia/Kolkata",
+					});
+
+					const card = document.createElement("div");
+					card.className = "product-card";
+					card.innerHTML = `
+         <div class="product-name">${product.name}</div>
+         <div class="product-price">MRP ₹ <span style="font-weight:bold;">${price.toFixed(2)}</span></div>
+         <div class="product-price">
+    <span>MRP:</span>
+    ${savingAmount ? `<span style="text-decoration: line-through;">${savingAmount}</span>` : ""}
+    <strong>₹${price.toFixed(2)}</strong>
+  </div>
+         <div class="use-by">Use by: <small>${futureDateText}</small></div>
+         ${
+						netWeightText
+							? `<div class="product-qty"><span>Net Weight:</span> <span style="font-weight:bold; font-size:14px">${netWeightText}</span></div>`
+							: ""
+					}
+       `;
+					// card.innerHTML = `
+					//     <div class="product-name">${product.name}</div>
+					//     <div class="product-price">MRP ₹ <span style="font-weight:bold;">${price.toFixed(2)}</span></div>
+					//     <div class="use-by">Use by: <small>${futureDateText}</small></div>
+					//     ${netWeightText ? `<div class="product-qty">Net Weight: <strong>${netWeightText}</strong></div>` : ""}
+					//     <div style="font-size:0.7rem;">USP: ₹${pricePerGram.toFixed(2)}${pricePerGram > 0 ? "/g" : ""}</div>
+					// `;
+
+					container.innerHTML = "";
+					container.appendChild(card);
+				}
+
+				async function init() {
+					const product = await fetchProduct(productSlug);
+					renderProduct(product);
+				}
+
+				init();
+			}
+		</script>
+	</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+        }
+
+        .category-section {
+            margin-bottom: 2rem;
+        }
+
+        .category-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            display: inline-block;
+            padding-bottom: 2px;
+        }
+
+        .product-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .product-card {
+            width: 50mm;
+            height: 30mm;
+            padding: 6px 8px;
+            margin: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #222;
+        }
+
+        .product-qty {
+            font-size: 0.7rem;
+            /* font-weight: bold; */
+        }
+
+        .product-price {
+            color: #000;
+        }
+
+        .use-by {
+            font-size: 0.7rem;
+        }
+
+        .use-by small {
+            /* color: #e63946; */
+            font-weight: 600;
+        }
+
+        /* ✅ PRINT MODE — one product per page, centered */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background: #fff;
+            }
+
+            .back {
+                display: none;
+            }
+
+            .category-section,
+            .category-title {
+                display: none;
+                /* Hide headings during print */
+            }
+
+            .product-grid {
+                display: block;
+            }
+
+            .product-card {
+                page-break-after: always;
+                width: 55mm;
+                height: 33mm;
+                display: flex;
+                margin-left: 3mm;
+                margin-top: 0mm;
+                transform: none;
+                box-sizing: border-box;
+                position: relative;
+            }
+
+            /* 🧭 Perfect centering on page */
+            @page {
+                size: 55mm 33mm;
+                margin: 0;
+            }
+
+
+        }
+    </style>
+</head>
+
+<body>
+    <a href="printproduct.html" class="back">← Back to products</a>
+    <div id="productDetails">Loading...</div>
+
+    <script>
+        const graphqlEndpoint = 'https://api.meatify.in/graphql/';
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = urlParams.get("slug");
+
+        const productQuery = `
+      query GetProduct($slug: String!) {
+        product(channel: "in", slug: $slug) {
+          id
+          name
+          slug
+          description
+          category { name }
+          attributes { attribute { name slug } values { name } }
+          variants {
+            name
+            attributes { attribute { name slug } values { name } }
+          }
+          pricing {
+            priceRange { start { gross { amount currency } } }
+          }
+        }
+      }
+    `;
+
+        async function fetchProduct() {
+            const res = await fetch(graphqlEndpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query: productQuery, variables: { slug } }),
+            });
+            const json = await res.json();
+            return json.data.product;
+        }
+
+        async function renderProduct() {
+            const product = await fetchProduct();
+            const container = document.getElementById("productDetails");
+
+            if (!product) {
+                container.innerHTML = "<p>Product not found.</p>";
+                return;
+            }
+
+            const price = product.pricing?.priceRange?.start?.gross?.amount || 0;
+            const variant = product.variants?.[0];
+            const netWeight =
+                product.attributes?.find((a) => a.attribute.slug === "net-weight")?.values?.[0]?.name ||
+                variant?.attributes?.find((a) => a.attribute.slug === "net-weight")?.values?.[0]?.name ||
+                "";
+
+            const numericWeight = parseFloat(netWeight.replace(/[^\d.]/g, "")) || 0;
+            const pricePerGram = numericWeight > 0 ? price / numericWeight : 0;
+
+            const today = new Date();
+            today.setDate(today.getDate() + 2);
+            const futureDateText = today.toLocaleDateString('en-IN', {
+                day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata'
+            });
+
+            container.innerHTML = `
+            <div class="product-card">
+         <div class="product-name">${product.name}</div>
+         <div class="product-price">MRP ₹ <span style="font-weight:bold;">${price.toFixed(2)}</span></div>
+         <div class="use-by">Use by: <small>${futureDateText}</small></div>
+         ${netWeight ? `<div class="product-qty"><span>Net Weight:</span> <span style="font-weight:bold; font-size:14px">${netWeight}</span></div>` : ""}
+         <div style="font-size:0.7rem;">USP: Rs ${pricePerGram.toFixed(2)}${pricePerGram > 0 ? "/g" : ""}</div>
+     </div>
+         `;
+            //         container.innerHTML = `
+            //     <div class="card">
+            //       <div class="product-name">${product.name}</div>
+            //       <div class="product-price">MRP ₹ <strong>${price.toFixed(2)}</strong></div>
+            //       <div class="use-by">Use by: <small>${futureDateText}</small></div>
+            //       ${netWeight ? `<div class="product-qty"><span>Net Weight:</span> <strong>${netWeight}</strong></div>` : ""}
+            //       <div style="font-size:0.8rem;">USP: ₹${pricePerGram.toFixed(2)}${pricePerGram > 0 ? "/g" : ""}</div>
+            //     </div>
+            //   `;
+        }
+
+        renderProduct();
+    </script>
+</body>
+
+</html> -->

@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Printable Product Label</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background: #fff;
+				margin: 0;
+				padding: 0;
+			}
+
+			.category-section {
+				margin-bottom: 2rem;
+			}
+
+			.category-title {
+				font-weight: bold;
+				font-size: 1.2rem;
+				margin-bottom: 0.8rem;
+				color: #333;
+				border-bottom: 2px solid #ddd;
+				display: inline-block;
+				padding-bottom: 2px;
+			}
+
+			.product-grid {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+			}
+
+			.product-card {
+				width: 50mm;
+				height: 30mm;
+				padding: 6px 8px;
+				margin: 6px;
+				font-size: 0.85rem;
+				display: flex;
+				flex-direction: column;
+				justify-content: space-between;
+				background: #fff;
+				box-sizing: border-box;
+			}
+
+			.product-name {
+				font-weight: 600;
+				color: #222;
+			}
+
+			.product-qty {
+				font-size: 0.7rem;
+				/* font-weight: bold; */
+			}
+
+			.product-price {
+				color: #000;
+			}
+
+			.use-by {
+				font-size: 0.7rem;
+			}
+
+			.use-by small {
+				/* color: #e63946; */
+				font-weight: 600;
+			}
+
+			/* ✅ PRINT MODE — one product per page, centered */
+			@media print {
+				body {
+					margin: 0;
+					padding: 0;
+					background: #fff;
+				}
+
+				.category-section,
+				.category-title {
+					display: none;
+					/* Hide headings during print */
+				}
+
+				.product-grid {
+					display: block;
+				}
+
+				.product-card {
+					page-break-after: always;
+					width: 55mm;
+					height: 33mm;
+					display: flex;
+					margin-left: 3mm;
+					margin-top: -0.1mm;
+					transform: none;
+					box-sizing: border-box;
+					position: relative;
+				}
+
+				@page {
+					size: 55mm 33mm;
+					margin: 0;
+				}
+			}
+		</style>
+		<script src="https://cdn.jsdelivr.net/npm/hi-base32@0.5.1/src/base32.min.js"></script>
+	</head>
+
+	<body>
+		<div id="productContainer">Loading product...</div>
+
+		<script>
+			const graphqlEndpoint = "https://api.meatify.in/graphql/";
+
+			// ✅ Get product slug from URL (example: ?slug=chicken-breast)
+			const urlParams = new URLSearchParams(window.location.search);
+			const productSlug = urlParams.get("slug");
+
+			if (productSlug) {
+				document.getElementById("productContainer").innerHTML = "<p>No product selected.</p>";
+			} else {
+				const GET_PRODUCTS_BY_IDS = `
+            query GetProductsByIds($ids: [ID!]) {
+                products(channel: "in", filter: { ids: $ids }, first: 100) {
+                edges {
+                    node {
+                    id
+                    name
+                    description
+                    category { name }
+                    attributes {
+                        attribute { name slug }
+                        values { name }
+                    }
+                    variants {
+                        name
+                        attributes {
+                        attribute { name slug }
+                        values { name }
+                        }
+                    }
+                    pricing {
+                        priceRange {
+                        start {
+                            gross {
+                            amount
+                            currency
+                            }
+                        }
+                        }
+                    }
+                    }
+                }
+                }
+            }
+            `;
+
+				window.addEventListener("message", async (event) => {
+					async function fetchProductsByIds(ids) {
+						const response = await fetch(graphqlEndpoint, {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify({
+								query: GET_PRODUCTS_BY_IDS,
+								variables: { ids },
+							}),
+						});
+
+						const json = await response.json();
+						return json.data.products.edges.map((e) => e.node);
+					}
+
+					function getSavingAmount(product) {
+						const variant = product.variants?.[0];
+						if (!variant) return null;
+						const savingAttr = variant.attributes.find((attr) => attr.attribute?.slug === "saving-amount");
+						if (!savingAttr) return null;
+						const value = savingAttr.values?.[0]?.name;
+						return value && value.trim() !== "" ? value : null;
+					}
+
+					function renderProduct(product, linePrice) {
+						const container = document.getElementById("productContainer");
+						if (!product) {
+							container.innerHTML = "<p>Product not found.</p>";
+							return;
+						}
+
+						// const price = product.pricing?.priceRange?.start?.gross?.amount || 0;
+						const price = order.lines;
+						const variant = product.variants?.[0];
+						const netWeight =
+							product.attributes?.find((a) => a.attribute.slug === "net-weight")?.values?.[0]?.name ||
+							variant?.attributes?.find((a) => a.attribute.slug === "net-weight")?.values?.[0]?.name ||
+							"";
+
+						const netWeightText = netWeight || "";
+						const numericWeight = parseFloat(netWeightText.replace(/[^\d.]/g, "")) || 0;
+						const pricePerGram = numericWeight > 0 && price > 0 ? price / numericWeight : 0;
+						const savingAmount = getSavingAmount(product);
+
+						const encoded = base32.encode(order.number);
+						const order_id = encoded.replace(/=+$/, "");
+
+						const today = new Date();
+						today.setDate(today.getDate() + 2);
+						const futureDateText = today.toLocaleDateString("en-IN", {
+							day: "numeric",
+							month: "long",
+							year: "numeric",
+							timeZone: "Asia/Kolkata",
+						});
+
+						const card = document.createElement("div");
+						card.className = "product-card";
+						card.innerHTML = `
+                        <div class="product-name">${order_id + order.number}</div>
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-price">MRP ₹<span style="text-decoration: line-through;">${savingAmount} </span>&nbsp; <span style="font-weight:bold;">${linePrice.toFixed(
+													2,
+												)} </span> </div>
+                        <div class="use-by">Use by: <small>${futureDateText}</small></div>
+                        ${
+													netWeightText
+														? `<div class="product-qty"><span>Net Weight:</span> <span style="font-weight:bold; font-size:14px">${netWeightText}</span></div>`
+														: ""
+												}
+                    `;
+						container.appendChild(card);
+					}
+
+					const order = event.data;
+					console.log("Received order:", order);
+					const productIds = order.lines.map((item) => item.variant.product.id);
+					const uniqueIds = [...new Set(productIds)];
+					console.log("Product IDs to fetch:", uniqueIds);
+					const products = await fetchProductsByIds(uniqueIds);
+					console.log("Product IDs to fetch:", products);
+					const container = document.getElementById("productContainer");
+					container.innerHTML = "";
+					products.forEach((product) => {
+						const line = order.lines.find((item) => item.variant.product.id === product.id);
+						if (!line) return;
+						for (let i = 0; i < line.quantity; i++) {
+							let price =
+								line.undiscountedUnitPrice.gross.amount || product.pricing.priceRange.start.gross.amount;
+							renderProduct(product, price);
+						}
+					});
+					const encoded = base32.encode(order.number);
+					const order_id = encoded.replace(/=+$/, "");
+
+					const card = document.createElement("div");
+					card.className = "product-card";
+					card.innerHTML = `
+                        <div class="product-name">${order_id + order.number}</div>
+                        <div class="product-name">${
+													order.billingAddress.firstName + " " + order.billingAddress.lastName
+												}</div>
+                        <div class="product-name">${
+													order.billingAddress.streetAddress1 + " " + order.billingAddress.streetAddress2
+												}</div>
+                        <div class="product-name">${order.billingAddress.postalCode}</div>
+                `;
+					container.appendChild(card);
+				});
+
+				// async function fetchProduct(slug) {
+				//     const res = await fetch(graphqlEndpoint, {
+				//         method: "POST",
+				//         headers: { "Content-Type": "application/json" },
+				//         body: JSON.stringify({ query, variables: { slug } }),
+				//     });
+				//     const json = await res.json();
+				//     return json.data.product;
+				// }
+
+				// async function init() {
+				//     const product = await fetchProduct(productSlug);
+				//     renderProduct(product);
+				// }
+
+				// init();
+			}
+		</script>
+	</body>
+</html>

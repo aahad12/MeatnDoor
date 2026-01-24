@@ -48,10 +48,20 @@ export default async function Page(props: {
 		notFound();
 	}
 
-	const newSearchParams = new URLSearchParams({
+	// Next page: include cursor for next page
+	const nextSearchParams = new URLSearchParams({
 		query: searchValue,
 		...(products.pageInfo.endCursor && { cursor: products.pageInfo.endCursor }),
 	});
+
+	// Previous page: remove cursor to go back (maintains query)
+	const previousSearchParams = new URLSearchParams({
+		query: searchValue,
+	});
+
+	// Override hasPreviousPage: if we have a cursor, we're not on the first page
+	// so there must be a previous page
+	const hasPreviousPage = cursor !== null || (products.pageInfo as { hasPreviousPage?: boolean }).hasPreviousPage || false;
 
 	const checkoutId = await Checkout.getIdFromCookies(params.channel);
 	const checkout: CheckoutFindQuery["checkout"] | undefined = await Checkout.find(checkoutId);
@@ -79,8 +89,10 @@ export default async function Page(props: {
 					<Pagination
 						pageInfo={{
 							...products.pageInfo,
+							hasPreviousPage,
 							basePathname: `/search`,
-							urlSearchParams: newSearchParams,
+							nextUrlSearchParams: nextSearchParams,
+							previousUrlSearchParams: previousSearchParams,
 						}}
 					/>
 				</div>

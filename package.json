@@ -26,6 +26,7 @@
 		"clsx": "2.1.0",
 		"editorjs-html": "3.4.3",
 		"formik": "2.4.5",
+		"hi-base32": "0.5.1",
 		"html2canvas": "1.4.1",
 		"jspdf": "4.0.0",
 		"libphonenumber-js": "1.10.58",

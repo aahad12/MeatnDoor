@@ -112,6 +112,7 @@ import {
 	IoLogoYoutube,
 	IoLogoPinterest,
 } from "react-icons/io5";
+import { LinkWithChannel } from "../atoms/LinkWithChannel";
 import { NavLink } from "./nav/components/NavLink";
 
 // type FooterProps = {
@@ -272,7 +273,7 @@ export function Footer() {
 								<div>
 									<h3 className="mb-4 text-lg font-bold text-white">Legal</h3>
 									<ul className="space-y-2.5">
-										<li>
+										{/* <li>
 											<Link
 												href="https://meatndoor.com/terms-and-conditions.html"
 												target="_blank"
@@ -281,16 +282,22 @@ export function Footer() {
 											>
 												Terms & Conditions
 											</Link>
-										</li>
+										</li> */}
 										<li>
-											<Link
-												href="https://meatndoor.com/privacy-policy.html"
-												target="_blank"
-												rel="noopener noreferrer"
+											<LinkWithChannel
+												href="/privacy-policy"
 												className="text-sm text-gray-300 transition-all duration-200 hover:translate-x-1 hover:text-[#ed4264] hover:underline"
 											>
 												Privacy Policy
-											</Link>
+											</LinkWithChannel>
+										</li>
+										<li>
+											<LinkWithChannel
+												href="/cancellation-refund"
+												className="text-sm text-gray-300 transition-all duration-200 hover:translate-x-1 hover:text-[#ed4264] hover:underline"
+											>
+												Cancellation & Refund
+											</LinkWithChannel>
 										</li>
 									</ul>
 								</div>

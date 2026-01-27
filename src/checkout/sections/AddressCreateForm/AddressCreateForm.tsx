@@ -9,6 +9,7 @@ import { useAddressFormSchema } from "@/checkout/components/AddressForm/useAddre
 import { AddressForm, type AddressFormProps } from "@/checkout/components/AddressForm";
 import { type AddressFragment, type CountryCode, useUserAddressCreateMutation } from "@/checkout/graphql";
 import { FormProvider } from "@/checkout/hooks/useForm/FormProvider";
+import { useAddressFormUtils } from "@/checkout/components/AddressForm/useAddressFormUtils";
 
 export interface AddressCreateFormProps extends Pick<AddressFormProps, "availableCountries"> {
 	onSuccess: (address: AddressFragment) => void;
@@ -39,7 +40,23 @@ export const AddressCreateForm: React.FC<AddressCreateFormProps> = ({
 		onSubmit,
 	});
 
-	const { handleSubmit, isSubmitting, handleChange } = form;
+	const { handleSubmit, isSubmitting, handleChange, values } = form;
+	const { isRequiredField, getFieldLabel } = useAddressFormUtils(values.countryCode);
+
+	// Check if all required fields are filled
+	const allFields: Array<keyof AddressFormData> = ["firstName", "lastName", "streetAddress1", "city", "postalCode", "countryArea", "phone"];
+	const missingFields = allFields.filter((field) => {
+		const isRequired = field === "phone" ? true : isRequiredField(field);
+		if (!isRequired) return false;
+		const value = values[field];
+		return !value || (typeof value === "string" && value.trim() === "");
+	});
+	const isFormValid = missingFields.length === 0;
+	const tooltipMessage = missingFields.length > 0
+		? `Please fill all required fields: ${missingFields
+				.map((field) => (field === "postalCode" ? "Postal Code" : getFieldLabel(field)))
+				.join(", ")}`
+		: undefined;
 
 	const onChange: ChangeHandler = (event) => {
 		const { name, value } = event.target;
@@ -54,7 +71,13 @@ export const AddressCreateForm: React.FC<AddressCreateFormProps> = ({
 	return (
 		<FormProvider form={{ ...form, handleChange: onChange }}>
 			<AddressForm title="Create address" availableCountries={availableCountries}>
-				<AddressFormActions onSubmit={handleSubmit} loading={isSubmitting} onCancel={onClose} />
+				<AddressFormActions
+					onSubmit={handleSubmit}
+					loading={isSubmitting}
+					onCancel={onClose}
+					disabled={!isFormValid}
+					tooltip={tooltipMessage}
+				/>
 			</AddressForm>
 		</FormProvider>
 	);

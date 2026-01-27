@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
+import base32 from "hi-base32";
 import { type OrderDetailsFragment } from "@/gql/graphql";
 import { getSummaryLineProps } from "@/checkout/sections/Summary/utils";
 
@@ -19,6 +20,8 @@ export const GeneratePDFInvoice: React.FC<GeneratePDFInvoiceProps> = ({
 	handlingFee,
 }) => {
 	const [isGenerating, setIsGenerating] = useState(false);
+	const orderNumber = order.number;
+	const _encoded = base32.encode(orderNumber).replace(/=+$/, "");
 
 	const generatePDF = async () => {
 		try {
@@ -94,7 +97,6 @@ export const GeneratePDFInvoice: React.FC<GeneratePDFInvoiceProps> = ({
 			const formattedDate = `${day}/${month}/${year}`;
 
 			// Encode order number (using simple base32-like encoding)
-			const encoded = btoa(order.number).replace(/=+$/, "").replace(/\+/g, "-").replace(/\//g, "_");
 
 			// Generate items HTML
 			const itemsHTML = order.lines
@@ -319,13 +321,13 @@ export const GeneratePDFInvoice: React.FC<GeneratePDFInvoiceProps> = ({
 							</div>
 							<div class="invoice-title">Invoice</div>
 							<div class="invoice-header"> 
-								<h2>Order #${encoded}${order.number}</h2> 
+								<h2>Order #${_encoded}${order.number}</h2> 
 								<div style="margin-bottom: 8px;"><strong>Date:</strong> ${formattedDate}</div>
 								<p style="margin-bottom: 8px;"><strong>Delivery Between:</strong> ${deliveryDate || "N/A"} ${deliveryTime || "N/A"}</p>
 								<p style="margin-bottom: 8px;"><strong>Placed at:</strong> ${orderDate}</p>
 								<div style="margin-bottom: 0; display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-									<strong>Status:</strong> 
-									<strong>${String(order.status) === "FULFILLED" ? "Delivered" : String(order.status) === "UNFULFILLED" ? "Processing" : String(order.status)}</strong> 
+									<div style="font-weight: bold;">Status:</div> 
+									<div style="background-color: green; color: white; padding: 0px 10px 12px 10px; border-radius: 5px; font-weight: bold; ">${String(order.status) === "FULFILLED" ? "Delivered" : String(order.status) === "UNFULFILLED" ? "Processing" : String(order.status)}</div> 
 								</div>
 							</div>
 						</div>
@@ -463,7 +465,7 @@ export const GeneratePDFInvoice: React.FC<GeneratePDFInvoiceProps> = ({
 			}
 
 			// Save the PDF
-			pdf.save(`order_${order.number}_invoice.pdf`);
+			pdf.save(`order_${_encoded}_invoice.pdf`);
 		} catch (error) {
 			console.error("Error generating PDF:", error);
 			alert("Failed to generate PDF. Please try again.");

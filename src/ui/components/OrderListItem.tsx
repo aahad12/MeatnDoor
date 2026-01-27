@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
+import base32 from "hi-base32";
 import { LinkWithChannel } from "../atoms/LinkWithChannel";
 import { GeneratePDFInvoice } from "./GeneratePDFInvoice";
 import { formatDate, formatMoney, getHrefForVariant } from "@/lib/utils";
@@ -214,6 +215,8 @@ export const OrderListItem = ({ order }: Props) => {
 	const [totalSavings, setTotalSavings] = useState<{ amount: number; currency: string } | null>(null);
 	const [_shippingPriceAmount, setShippingPriceAmount] = useState<{ amount: number; currency: string } | null>(null);
 	const [_maxShippingPriceAmount, setMaxShippingPriceAmount] = useState<{ amount: number; currency: string } | null>(null);
+	const orderNumber = order.number;
+	const _encoded = base32.encode(orderNumber).replace(/=+$/, "");
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		if (order?.shippingMethods && Array.isArray(order.shippingMethods) && order.shippingMethods.length > 0) {
@@ -453,7 +456,7 @@ export const OrderListItem = ({ order }: Props) => {
 						{/* Order number */}
 						<div className="flex flex-col">
 							<dt className="text-xs font-medium text-neutral-500">Order number</dt>
-							<dd className="mt-1 text-sm font-semibold text-neutral-900">{order.number}</dd>
+							<dd className="mt-1 text-sm font-semibold text-neutral-900">#{_encoded}{order.number}</dd>
 						</div>
 
 						{/* Date placed */}

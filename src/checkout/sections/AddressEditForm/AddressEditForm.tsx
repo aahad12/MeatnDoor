@@ -15,6 +15,7 @@ import { useFormSubmit } from "@/checkout/hooks/useFormSubmit";
 import { AddressFormActions } from "@/checkout/components/ManualSaveAddressForm";
 import { useAddressFormSchema } from "@/checkout/components/AddressForm/useAddressFormSchema";
 import { useSubmit } from "@/checkout/hooks/useSubmit/useSubmit";
+import { useAddressFormUtils } from "@/checkout/components/AddressForm/useAddressFormUtils";
 
 export interface AddressEditFormProps extends Pick<AddressFormProps, "title" | "availableCountries"> {
 	address: AddressFragment;
@@ -62,7 +63,23 @@ export const AddressEditForm: React.FC<AddressEditFormProps> = ({
 		onSubmit,
 	});
 
-	const { handleSubmit, handleChange } = form;
+	const { handleSubmit, handleChange, values } = form;
+	const { isRequiredField, getFieldLabel } = useAddressFormUtils(values.countryCode);
+
+	// Check if all required fields are filled
+	const allFields: Array<keyof AddressFormData> = ["firstName", "lastName", "streetAddress1", "city", "postalCode", "countryArea", "phone"];
+	const missingFields = allFields.filter((field) => {
+		const isRequired = field === "phone" ? true : isRequiredField(field);
+		if (!isRequired) return false;
+		const value = values[field];
+		return !value || (typeof value === "string" && value.trim() === "");
+	});
+	const isFormValid = missingFields.length === 0;
+	const tooltipMessage = missingFields.length > 0
+		? `Please fill all required fields: ${missingFields
+				.map((field) => (field === "postalCode" ? "Postal Code" : getFieldLabel(field)))
+				.join(", ")}`
+		: undefined;
 
 	const onChange: ChangeHandler = (event) => {
 		const { name, value } = event.target;
@@ -82,6 +99,8 @@ export const AddressEditForm: React.FC<AddressEditFormProps> = ({
 					loading={updating || deleting}
 					onCancel={onClose}
 					onDelete={() => onAddressDelete({ id: address.id })}
+					disabled={!isFormValid}
+					tooltip={tooltipMessage}
 				/>
 			</AddressForm>
 		</FormProvider>
